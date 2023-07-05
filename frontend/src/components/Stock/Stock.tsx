@@ -11,7 +11,7 @@ const FormContainer = styled('div')({
     display: 'flex',
     flexDirection: 'column',
     gap: '16px',
-    maxWidth: '300px',
+    maxWidth: '80%',
 });
 
 const Header = styled(Typography)({
@@ -32,30 +32,29 @@ const Stock: FC<StockProps> = () => {
     const [successMessage, setSuccessMessage] = useState<String | undefined>('');
     const [openSnackbar, setOpenSnackbar] = useState(false);
 
+    const showGenericErrorFetchingAllStocks = () => {
+        setErrorMessage("An error happened while displaying all stocks")
+        setOpenSnackbar(true)
+    }
+
     const fetchAllStocksFromAPI = async () => {
         const {stocks, error} = await getAllStocks()
-        console.log(`Stocks returned: ${stocks}`)
-
-        stocks?.forEach(stock => {
-            console.log(stock)
-        })
 
         if (error) {
-            setErrorMessage("An error happened while displaying all stocks")
-            setOpenSnackbar(true)
+            showGenericErrorFetchingAllStocks()
         } else {
             setStocks(stocks)
         }
     }
 
-    useEffect(() => { fetchAllStocksFromAPI() }, [])
+    useEffect(() => { fetchAllStocksFromAPI().catch(() => showGenericErrorFetchingAllStocks()) }, [])
 
     const handleCreateStock = async (event: React.FormEvent) => {
         event.preventDefault()
 
         const stock = {ticker, description, date: "2023-07-04", currentValue: 0.0}
         const { failure, success } = await createStock(stock)
-        fetchAllStocksFromAPI()
+        fetchAllStocksFromAPI().catch(() => showGenericErrorFetchingAllStocks())
         setTicker("")
         setDescription("")
         setSuccessMessage(success)
@@ -87,7 +86,13 @@ const Stock: FC<StockProps> = () => {
                 <SubmitButton type="submit" variant="contained" color="primary">Submit</SubmitButton>
             </form>
 
-            <Snackbar open={openSnackbar} autoHideDuration={3000} onClose={handleSnackbarClose}>
+            <Snackbar open={openSnackbar}
+                      autoHideDuration={3000}
+                      onClose={handleSnackbarClose}
+                      anchorOrigin={{
+                          vertical: "top",
+                          horizontal: "center"
+                      }}>
                 {successMessage ? (
                     <Alert onClose={handleSnackbarClose} severity="success">
                         {successMessage}

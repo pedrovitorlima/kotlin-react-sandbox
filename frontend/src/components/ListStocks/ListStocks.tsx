@@ -17,7 +17,7 @@ const ListStocks: FC<ListStocksProps> = ({stocks}) => {
     return (
         <div>
             <Header variant="h6">List of Stocks</Header>
-            <Table>
+            <Table className="fullTable">
                 <TableHead>
                     <TableRow>
                         <TableCell>Ticker</TableCell>
