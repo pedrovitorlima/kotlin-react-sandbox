@@ -7,7 +7,9 @@ import ShowChartIcon from '@mui/icons-material/ShowChart';
 import EditNoteIcon from '@mui/icons-material/EditNote';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
+import ModeStandbyIcon from '@mui/icons-material/ModeStandby';
 import {Link} from "react-router-dom";
+import {SpaceDashboard} from "@mui/icons-material";
 
 interface MenuProps {}
 
@@ -72,9 +74,19 @@ const Menu: FC<MenuProps> = () => {
                        open={Boolean(financialGoalsEl)}
                        onClose={handleFinancialGoalsClose}>
 
-                <MenuItem onClick={() => handleMenuItemClick('viewGoals')}>
-                    <ListItemIcon><QueryStatsIcon /></ListItemIcon>
-                    <ListItemText>view goals</ListItemText>
+                <MenuItem component={Link} to="/financial-goals/manage" onClick={() => handleMenuItemClick('manageGoals')}>
+                    <ListItemIcon><ModeStandbyIcon /></ListItemIcon>
+                    <ListItemText>manage goals</ListItemText>
+                </MenuItem>
+
+                <MenuItem onClick={() => handleMenuItemClick('manageBudget')}>
+                    <ListItemIcon><MonetizationOnIcon /></ListItemIcon>
+                    <ListItemText>manage budgets</ListItemText>
+                </MenuItem>
+
+                <MenuItem onClick={() => handleMenuItemClick('goalsDashboard')}>
+                    <ListItemIcon><SpaceDashboard /></ListItemIcon>
+                    <ListItemText>goals dashboard</ListItemText>
                 </MenuItem>
 
             </MenuReact>

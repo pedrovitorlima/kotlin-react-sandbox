@@ -1,0 +1,57 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Resources:
+  StockTableDynamoDB:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: stocks
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: N
+        - AttributeName: ticker
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+        - AttributeName: ticker
+          KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+
+  StocksPriceScrapperLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: StocksPriceScrapperLambda
+      Runtime: go1.x
+      Handler: main
+      CodeUri: ../golang/.
+      Events:
+        ScheduleEvent:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 day)
+
+  ApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      DefinitionBody:
+        swagger: '2.0'
+        info:
+          title: StockPriceAPI
+        paths:
+          /api/stock:
+            get:
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${StocksPriceScrapperLambda.Arn}/invocations
+                httpMethod: POST
+                passthroughBehavior: when_no_match
+
+Outputs:
+  StockEndpoint:
+    Value:
+      Fn::Sub: https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/Prod/
+    Description: Endpoint for the Stock API Gateway
