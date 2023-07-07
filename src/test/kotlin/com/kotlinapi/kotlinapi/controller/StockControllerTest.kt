@@ -45,6 +45,24 @@ internal class StockControllerTest @Autowired constructor(
                     jsonPath("$.id") { value(stock.id) }
                 }
         }
+
+        @Test
+        fun `Should return error message and bad request if the a stock with same ticker already exists`() {
+            val stock = Stock(0, "twks", "description", "6.50", LocalDate.now())
+            create(stock)
+
+            val newStock = Stock(0, "twks", "any other description", "10.0", LocalDate.now())
+            val response = mockMvc.put(baseUrl) {
+                content = objectMapper.writeValueAsString(newStock)
+                contentType = MediaType.APPLICATION_JSON
+            }
+
+            response.andExpect {
+                    status { isBadRequest() }
+                    content { string("There is an existing stock with the same ticker '${newStock.ticker}'") }
+                }
+
+        }
     }
 
     @Nested

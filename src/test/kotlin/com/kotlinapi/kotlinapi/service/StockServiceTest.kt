@@ -2,16 +2,16 @@ package com.kotlinapi.kotlinapi.service
 
 import com.kotlinapi.kotlinapi. data.StockRepository
 import com.kotlinapi.kotlinapi.model.Stock
+import com.kotlinapi.kotlinapi.validation.StockAlreadyExistException
+import io.mockk.called
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.runs
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.MockitoAnnotations
 import java.time.LocalDate
@@ -31,14 +31,31 @@ internal class StockServiceTest {
         stockService = StockService(stockRepository)
     }
 
-    @Test
-    fun `Should create a stock given a valid stock`() {
-        val stock = Stock(1, "TWKS", "description", "7.5", LocalDate.now())
-        every { stockRepository.save(stock) } returns stock
+    @Nested
+    @DisplayName("Create Stock")
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+    inner class  CreateStockTest{
+        @Test
+        fun `Should throw exception given a stock with same ticker already exists`() {
+            val stock = Stock(1, "TWKS", "description", "7.5", LocalDate.now())
+            val existingStock = Stock(1, "TWKS", "description", "7.5", LocalDate.now())
 
-        stockService.save(stock)
+            every { stockRepository.findByTicker(stock.ticker) } returns Optional.of(existingStock)
 
-        verify { stockRepository.save(stock) }
+            val exception = assertThrows<StockAlreadyExistException> { (stockService.save(stock))  }
+            assertThat(exception.message).isEqualTo("There is an existing stock with the same ticker '${stock.ticker}'");
+            verify{ stockRepository.save(stock) wasNot called }
+        }
+
+        @Test
+        fun `Should create a stock given a valid stock`() {
+            val stock = Stock(1, "TWKS", "description", "7.5", LocalDate.now())
+            every { stockRepository.save(stock) } returns stock
+
+            stockService.save(stock)
+
+            verify { stockRepository.save(stock) }
+        }
     }
 
     @Test
