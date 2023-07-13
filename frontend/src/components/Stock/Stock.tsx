@@ -32,6 +32,8 @@ const Stock: FC<StockProps> = () => {
     const [successMessage, setSuccessMessage] = useState<String | undefined>('');
     const [openSnackbar, setOpenSnackbar] = useState(false);
 
+    const [tickerFormError, setTickerFormError] = useState<String | undefined>(undefined)
+
     const showGenericErrorFetchingAllStocks = () => {
         setErrorMessage("An error happened while displaying all stocks")
         setOpenSnackbar(true)
@@ -53,12 +55,20 @@ const Stock: FC<StockProps> = () => {
         event.preventDefault()
 
         const stock = {ticker, description, date: "2023-07-04", currentValue: 0.0}
-        const { failure, success } = await createStock(stock)
+        const { failure, success, fieldsValidatedWithErrors } = await createStock(stock)
+
         fetchAllStocksFromAPI().catch(() => showGenericErrorFetchingAllStocks())
-        setTicker("")
-        setDescription("")
         setSuccessMessage(success)
         setErrorMessage(failure)
+
+        if (fieldsValidatedWithErrors) {
+            setTickerFormError(fieldsValidatedWithErrors.ticker)
+        }
+
+        if (!failure) {
+            setTicker("")
+            setDescription("")
+        }
 
         setOpenSnackbar(true)
     }
@@ -74,6 +84,8 @@ const Stock: FC<StockProps> = () => {
                 <TextField label="ticker"
                            value={ticker}
                            data-testid="ticker"
+                           error={!!tickerFormError}
+                           helperText={tickerFormError}
                            sx={{width: 100, paddingY: '4px'}}
                            onChange={(event) => setTicker(event.target.value)} />
 

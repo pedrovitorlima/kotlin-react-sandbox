@@ -3,6 +3,7 @@ package com.kotlinapi.kotlinapi.controller
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.kotlinapi.kotlinapi.model.Stock
+import com.kotlinapi.kotlinapi.model.ValidationError
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -57,9 +58,11 @@ internal class StockControllerTest @Autowired constructor(
                 contentType = MediaType.APPLICATION_JSON
             }
 
+            val validationErrorsObject = ValidationError("The stock cannot be created due to validation errors",
+                mapOf("ticker" to "This ticker is already being used"))
             response.andExpect {
                     status { isBadRequest() }
-                    content { string("There is an existing stock with the same ticker '${newStock.ticker}'") }
+                    content { objectMapper.writeValueAsString(validationErrorsObject) }
                 }
 
         }

@@ -5,15 +5,12 @@ import com.kotlinapi.kotlinapi.model.Stock
 import com.kotlinapi.kotlinapi.validation.StockAlreadyExistException
 import io.mockk.called
 import io.mockk.every
-import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
-import io.mockk.runs
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.MockitoAnnotations
 import java.time.LocalDate
 import java.util.*
 
@@ -39,11 +36,13 @@ internal class StockServiceTest {
         fun `Should throw exception given a stock with same ticker already exists`() {
             val stock = Stock(1, "TWKS", "description", "7.5", LocalDate.now())
             val existingStock = Stock(1, "TWKS", "description", "7.5", LocalDate.now())
+            val expectedValidationError = mapOf("ticker" to "This ticker is already being used")
 
             every { stockRepository.findByTicker(stock.ticker) } returns Optional.of(existingStock)
 
             val exception = assertThrows<StockAlreadyExistException> { (stockService.save(stock))  }
-            assertThat(exception.message).isEqualTo("There is an existing stock with the same ticker '${stock.ticker}'");
+            assertThat(exception.message).isEqualTo("The stock cannot be created due to validation errors")
+            assertThat(exception.validationErrors).isEqualTo(expectedValidationError)
             verify{ stockRepository.save(stock) wasNot called }
         }
 

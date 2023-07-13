@@ -7,10 +7,11 @@ import org.springframework.stereotype.Service
 import kotlin.jvm.optionals.getOrNull
 @Service
 class StockService(val stockRepository: StockRepository) {
+
     fun save(stock: Stock): Stock {
         val existingStock = stockRepository.findByTicker(stock.ticker)
         if (existingStock.isPresent) {
-            throw StockAlreadyExistException("There is an existing stock with the same ticker '${stock.ticker}'");
+            throw StockAlreadyExistException("The stock cannot be created due to validation errors", mapOf("ticker" to "This ticker is already being used"));
         }
 
         stockRepository.save(stock)

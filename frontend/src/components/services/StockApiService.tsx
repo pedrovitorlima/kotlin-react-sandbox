@@ -2,7 +2,8 @@ import StockDto from "../data/StockDto";
 
 interface ResponseMessage {
     success?: String,
-    failure?: String
+    failure?: String,
+    fieldsValidatedWithErrors?: any
 }
 
 const BASE_URL = 'http://localhost:9000/api/stock';
@@ -20,7 +21,8 @@ const createStock = async (payload: StockDto) : Promise<ResponseMessage> => {
         if (response.ok) {
             return {success: "Stock saved successfully"}
         } else {
-            return {failure: "An error happened while saving the stock"}
+            const validationObject = await response.json()
+            return { failure: validationObject.generalError, fieldsValidatedWithErrors: validationObject.validationErrors  }
         }
 
     } catch (error) {
